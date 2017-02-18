@@ -1,0 +1,28 @@
+{
+  "name": "go-mongo",
+  "version": "1.0.1",
+  "description": "mongo database operations",
+  "main": "index.js",
+  "scripts": {
+    "test": "test.js"
+  },
+  "keywords": [],
+  "author": "T. Greg O'Neil <go22.npm@gmail.com> (http://tgregoneil.com)",
+  "license": "ISC",
+  "readme": "readme.md",
+  "homepage": "https://github.com/tgregoneil/go-mongo",
+  "repository": {
+    "url": "git+ssh://github.com/tgregoneil/go-mongo .git",
+    "type": "git"
+  },
+  "devDependencies": {
+    "js-beautify": "^1.6.2"
+  },
+  "dependencies": {
+    "mongodb": "^1.0.0",
+    "go-util": "*"
+  },
+  "bugs": {
+    "url": "https://github.com/tgregoneil/go-mong/issues"
+  }
+}
