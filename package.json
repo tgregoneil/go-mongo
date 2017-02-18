@@ -1,6 +1,6 @@
 {
   "name": "go-mongo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "mongo database operations",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "js-beautify": "^1.6.2"
   },
   "dependencies": {
-    "mongodb": "^1.0.0",
+    "mongodb": "^2.2.24",
     "go-util": "*"
   },
   "bugs": {
