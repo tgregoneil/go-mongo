@@ -1,7 +1,7 @@
 {
   "name": "go-mongo",
-  "version": "1.0.8",
-  "description": "mongo database operations using mongodb npm package",
+  "version": "1.0.9",
+  "description": "mongo database operations requiring mongodb npm package",
   "main": "index.js",
   "scripts": {
     "test": "test.js"
