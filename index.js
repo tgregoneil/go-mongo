@@ -1,7 +1,7 @@
 // go-mongo/index.js
 
 
-module.exports = function () {
+module.exports = function (p) {
 
 // PRIVATE Properties/Methods
 var _ = {
@@ -41,7 +41,9 @@ _.init = () => {
     
     _.lastInited = _.initDefaults;
 
-    P.init (_.initDefaults);
+    var pIn = _.ut.isOb (p) ? p : _.lastInited;
+
+    P.init (pIn);
 
 }; // end _.init
 
