@@ -304,7 +304,7 @@ P.findOne = (queryOb, projectionOb, cb) => {
 
             } // end if (items !== null)
 
-            _.doCallback (err, items, cb);
+            _.doCallback (err, items [0], cb);
             
         });
             
@@ -488,7 +488,7 @@ P.getSecondaryKeys = (keypath, cb) => {
 
 
 //---------------------
-P.insert = (ob, cb) => {
+P.insert = (ob, options, cb) => {
     
     ob = _.ut.dollarDotSubUnicode (ob);
 
@@ -496,7 +496,7 @@ P.insert = (ob, cb) => {
 
     _.connectCollection (function (collectionOb) {
      
-        collectionOb.insert (ob, function (err, res) {
+        collectionOb.insert (ob, options ? options : null, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
             _.doCallback (err, res, cb);
