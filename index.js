@@ -7,6 +7,7 @@ module.exports = function (p) {
 var _ = {
 
     mongoClient: require ('mongodb').MongoClient,
+    objectId: require ('mongodb').ObjectID,
     ut: require ('go-util'),
 
     uri: null,
@@ -313,6 +314,15 @@ P.findOne = (queryOb, projectionOb, cb) => {
 
 }; // end P.find 
 
+
+
+//---------------------
+P.genObjectId = (hexStr) => {
+    
+    var oid = new _.objectId (hexStr);
+    return oid;
+
+}; // end P.genObjectId
 
 
 //---------------------
