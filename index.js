@@ -720,6 +720,25 @@ P.setUserPwd = (user, pwd) => {
 // end PUBLIC section
 
 //---------------------
+P.update = (queryOb, updateOb, cb) => {
+    
+    _.reportErr = true;
+
+    _.connectCollection (function (collectionOb) {
+     
+        collectionOb.update (queryOb, updateOb, function (err, res) {
+
+            err = err ? 'P.insert: err = ' + err : null ;
+            _.doCallback (err, res, cb);
+
+        });
+        
+    });
+
+}; // end P.Insert 
+
+
+//---------------------
 P.updateOne = (queryOb, updateOb, cb) => {
     
     _.reportErr = true;
@@ -746,6 +765,25 @@ P.updateMany = (queryOb, updateOb, cb) => {
     _.connectCollection (function (collectionOb) {
      
         collectionOb.updateMany (queryOb, updateOb, function (err, res) {
+
+            err = err ? 'P.insert: err = ' + err : null ;
+            _.doCallback (err, res, cb);
+
+        });
+        
+    });
+
+}; // end P.Insert 
+
+
+//---------------------
+P.upsert = (queryOb, upsertOb, cb) => {
+    
+    _.reportErr = true;
+
+    _.connectCollection (function (collectionOb) {
+     
+        collectionOb.update (queryOb, upsertOb, {upsert: true}, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
             _.doCallback (err, res, cb);
