@@ -293,19 +293,18 @@ P.findOne = (queryOb, projectionOb, cb) => {
 
     _.connectCollection (function (collectionOb) {
         
-        collectionOb.findOne (queryOb, projectionOb)
-        .toArray (function (err, items) {
+        collectionOb.findOne (queryOb, projectionOb, function (err, item) {
 
             err = err ? 'P.findOne failed:  query ' + JSON.stringify (queryOb) + '\n' + 
                 'projection ' + JSON.stringify (projectionOb) : null;
 
-            if (items !== null) {
+            if (item !== null) {
 
-                _.ut.dollarDotSubUnicodeRestore (items);
+                _.ut.dollarDotSubUnicodeRestore (item);
 
-            } // end if (items !== null)
+            } // end if (item !== null)
 
-            _.doCallback (err, items [0], cb);
+            _.doCallback (err, item, cb);
             
         });
             
@@ -424,13 +423,15 @@ P.getSecondaryKeys = (keypath, cb) => {
         var res = {};
         var maxLength = 0;
         var values = {};
+        var j;
+        var keys;
         for (var i = 0; i < items.length; i++) {
 
             var item = _.walkPath (items [i], keypath);
             if (_.ut.isOb (item)) {
 
-                var keys = Object.keys (item);
-                for (var j = 0; j < keys.length; j++) {
+                keys = Object.keys (item);
+                for (j = 0; j < keys.length; j++) {
 
                     res [keys [j]] = 1;
 
@@ -440,12 +441,12 @@ P.getSecondaryKeys = (keypath, cb) => {
             } else if (Array.isArray (item)) {
 
                 maxLength = item.length > maxLength ? item.length : maxLength;
-                for (var j = 0; j < item.length; j++) {
+                for (j = 0; j < item.length; j++) {
 
                     var aItem = item [j];
                     if (_.ut.isOb (aItem)) {
 
-                        var keys = Object.keys (aItem);
+                        keys = Object.keys (aItem);
                         for (var k = 0; k < keys.length; k++) {
 
                             res [keys [k]] = 1;
