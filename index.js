@@ -4,7 +4,7 @@
 module.exports = function (p) {
 
 // PRIVATE Properties/Methods
-var _ = {
+var v = {
 
     mongoClient: require ('mongodb').MongoClient,
     objectId: require ('mongodb').ObjectID,
@@ -35,53 +35,59 @@ var _ = {
         infoCb: console.log,
     },
 
+    dbName: "",
+
 }; // end PRIVATE properties
+var f={};
 
 //---------------------
-_.init = () => {
+f.init = () => {
     
-    _.lastInited = _.initDefaults;
+    v.lastInited = v.initDefaults;
 
-    var pIn = _.ut.isOb (p) ? p : _.lastInited;
+    var pIn = v.ut.isOb (p) ? p : v.lastInited;
 
     P.init (pIn);
 
-}; // end _.init
+}; // end f.init
 
 //---------------------
-_.connect = (cb) => {
+f.connect = (cb) => {
     
 
-    _.mongoClient.connect (_.uri, function (err, dbOb) {
+    //v.mongoClient.connect (v.uri, function (err, dbOb) {
+    v.mongoClient.connect (v.uri, function (err, client) {
 
         if (err) {
 
-            if (_.reportErr) {
+            if (v.reportErr) {
 
-                _.errCb (err);
+                v.errCb (err);
 
             } else {
 
                 cb (null);
 
-            } // end if (_.reportErr)
+            } // end if (v.reportErr)
             
 
         } else {
 
-            cb (dbOb);
+            //cb (dbOb);
+            const db = client.db (v.dbName);
+            cb (db);
 
         } // end if (err)
         
     });
 
-}; // end _.connect 
+}; // end f.connect 
 
 
 //---------------------
-_.connectCollection = (cb) => {
+f.connectCollection = (cb) => {
     
-    _.connect (function (dbOb) {
+    f.connect (function (dbOb) {
         
         if (dbOb === null) {
 
@@ -89,34 +95,35 @@ _.connectCollection = (cb) => {
 
         } else {
             
-            if (_.collectionName === "") {
+            if (v.collectionName === "") {
 
-                _.errCb ('No collection name specified');
+                v.errCb ('No collection name specified');
 
             } else {
                 
-                var collectionOb = dbOb.collection (_.collectionName);
+                var collectionOb = dbOb.collection (v.collectionName);
                 cb (collectionOb);
 
-            } // end if (_.collectionName === "")
+            } // end if (v.collectionName === "")
             
 
         } // end if (dbOb === null)
         
     });
         
-}; // end _.connectCollection 
+}; // end f.connectCollection 
 
 
 //---------------------
-_.doCallback = (err, res, cb) => {
+f.doCallback = (err, res, cb) => {
     
-    cb = !cb ? _.cb : cb;
-        // providing cb is optional: if not passed, use _.cb as defined in P.init
+    cb = !cb ? v.cb : cb;
+        // providing cb is optional: if not passed, use v.cb as defined in P.init
 
     if (err) {
 
-        _.errCb (err);
+        v.errCb (err);
+        cb (err);
 
     } else {
 
@@ -131,37 +138,37 @@ _.doCallback = (err, res, cb) => {
     } // end if (err)
     
 
-}; // end _.doCallback 
+}; // end f.doCallback 
 
 //---------------------
-_.restoreP = () => {
+f.restoreP = () => {
     
-    _.uri = _.savedP.uri;
-    _.collectionName = _.savedP.collectionName;
-    _.cb = _.savedP.cb;
-    _.errCb = _.savedP.errCb;
-    _.lastInited = _.savedP.lastInited;
+    v.uri = v.savedP.uri;
+    v.collectionName = v.savedP.collectionName;
+    v.cb = v.savedP.cb;
+    v.errCb = v.savedP.errCb;
+    v.lastInited = v.savedP.lastInited;
 
     return;
 
-}; // end _.restoreP
+}; // end f.restoreP
 
 
 
 //---------------------
-_.saveP = () => {
+f.saveP = () => {
 
-    _.savedP = {
-        uri: _.uri,
-        collectionName: _.collectionName,
-        cb: _.cb,
-        errCb: _.errCb,
-        lastInited: _.ut.cloneOb (_.lastInited),
+    v.savedP = {
+        uri: v.uri,
+        collectionName: v.collectionName,
+        cb: v.cb,
+        errCb: v.errCb,
+        lastInited: v.ut.cloneOb (v.lastInited),
     };
         
     return;
 
-}; // end _.saveP
+}; // end f.saveP
 
 
 // PUBLIC Properties/Methods
@@ -170,16 +177,16 @@ var P = {};
 //---------------------
 P.init = (pIn) => {
     
-    var p = _.ut.pCheck (pIn, _.lastInited);
-    _.lastInited = p;
+    var p = v.ut.pCheck (pIn, v.lastInited);
+    v.lastInited = p;
 
-    _.collectionName = p.collectionName;
+    v.collectionName = p.collectionName;
 
     P.updateUri (false);
 
-    _.cb = p.cb;
-    _.errCb = p.errCb;
-    _.infoCb = p.infoCb;
+    v.cb = p.cb;
+    v.errCb = p.errCb;
+    v.infoCb = p.infoCb;
 
 }; // end P.init 
 
@@ -187,17 +194,17 @@ P.init = (pIn) => {
 //---------------------
 P.createCollection = (collectionName) => {
     
-    _.connect (function (dbOb) {
+    f.connect (function (dbOb) {
         
         dbOb.createCollection (collectionName, function (err, collection) {
             
             if (err) {
 
-                _.errCb ("mongoOps.createCollection: Couldn't create collection " + collectionName);
+                v.errCb ("mongoOps.createCollection: Couldn't create collection " + collectionName);
 
             } else {
 
-                _.collectionName = collectionName;
+                v.collectionName = collectionName;
 
                 P.listUriCollection ();
 
@@ -212,14 +219,14 @@ P.createCollection = (collectionName) => {
 //---------------------
 P.deleteOne = (ob, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.deleteOne (ob, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -231,14 +238,14 @@ P.deleteOne = (ob, cb) => {
 //---------------------
 P.deleteMany = (ob, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.deleteMany (ob, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -250,17 +257,84 @@ P.deleteMany = (ob, cb) => {
 //---------------------
 P.doReportErr = (reportErr) => {
     
-    _.reportErr = reportErr;
+    v.reportErr = reportErr;
 
 }; // end P.doReportErr 
 
 
 //---------------------
+P.explain = (queryOb, projectionOb, cb) => {
+    
+    v.reportErr = true;
+
+    f.connectCollection (function (collectionOb) {
+        
+        collectionOb.find (queryOb, projectionOb)
+        .explain (function (err, explanation) {
+
+            err = err ?  'P.explain failed:  query ' + JSON.stringify (queryOb) + '\n' + 
+                'projection ' + JSON.stringify (projectionOb) : null;
+
+            f.doCallback (err, explanation, cb);
+            
+        });
+        
+    });
+
+
+}; // end P.explain 
+
+
+//---------------------
+P.aggregate = (pipeline, options, cb) => {
+    
+    v.reportErr = true;
+
+    f.connectCollection (function (collectionOb) {
+        
+        //.toArray (function (err, items) {
+        collectionOb.aggregate (pipeline, options, function (err, itemsCursor) {
+
+            if (err) {
+
+                err = err ?  'P.aggregate failed:  pipeline ' + JSON.stringify (pipeline) + '\n' + 
+                    'options ' + JSON.stringify (options) : null;
+
+                f.doCallback (err, null, cb);
+            
+            } else {
+
+                itemsCursor.toArray (function (err, items) {
+
+                    if (items !== null) {
+        
+                        v.ut.dollarDotSubUnicodeRestore (items);
+        
+                    } // end if (items != null)
+
+                    f.doCallback (err, items, cb);
+
+                });
+    
+
+            } // end if (err)
+            
+
+        })
+            
+        
+    });
+
+
+}; // end P.aggregate 
+
+
+//---------------------
 P.find = (queryOb, projectionOb, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
         
         collectionOb.find (queryOb, projectionOb)
         .toArray (function (err, items) {
@@ -270,11 +344,11 @@ P.find = (queryOb, projectionOb, cb) => {
 
             if (items !== null) {
 
-                _.ut.dollarDotSubUnicodeRestore (items);
+                v.ut.dollarDotSubUnicodeRestore (items);
 
             } // end if (items != null)
 
-            _.doCallback (err, items, cb);
+            f.doCallback (err, items, cb);
             
         });
             
@@ -289,9 +363,9 @@ P.find = (queryOb, projectionOb, cb) => {
 //---------------------
 P.findOne = (queryOb, projectionOb, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
         
         collectionOb.findOne (queryOb, projectionOb, function (err, item) {
 
@@ -300,11 +374,11 @@ P.findOne = (queryOb, projectionOb, cb) => {
 
             if (item !== null) {
 
-                _.ut.dollarDotSubUnicodeRestore (item);
+                v.ut.dollarDotSubUnicodeRestore (item);
 
             } // end if (item !== null)
 
-            _.doCallback (err, item, cb);
+            f.doCallback (err, item, cb);
             
         });
             
@@ -318,7 +392,7 @@ P.findOne = (queryOb, projectionOb, cb) => {
 //---------------------
 P.genObjectId = (hexStr) => {
     
-    var oid = new _.objectId (hexStr);
+    var oid = new v.objectId (hexStr);
     return oid;
 
 }; // end P.genObjectId
@@ -327,9 +401,9 @@ P.genObjectId = (hexStr) => {
 //---------------------
 P.getPrimaryKeys = (cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
 
         var map = function () {
             for (var key in this) { emit(key, null); }
@@ -339,12 +413,12 @@ P.getPrimaryKeys = (cb) => {
             return null;
         };
 
-        //collectionOb.mapReduce (map, reduce, {out: _.collectionName + '_keys'}, function (err, col) {
+        //collectionOb.mapReduce (map, reduce, {out: v.collectionName + '_keys'}, function (err, col) {
         collectionOb.mapReduce (map, reduce, {out: 'zkeys'}, function (err, col) {
             
             if (err) {
 
-                _.errCb ('P.getAllKeys, mapReduce failed: ' + err);
+                v.errCb ('P.getPrimaryKeys, mapReduce failed: ' + err);
                 return;
 
             } // end if (err)
@@ -370,18 +444,18 @@ P.getPrimaryKeys = (cb) => {
 
                 } // end if (err)
 
-                _.doCallback (err, resA, cb);
+                f.doCallback (err, resA, cb);
             });
 
         });
     });
     
 
-}; // end P.getAllKeys 
+}; // end P.getPrimaryKeys 
 
 
 //---------------------
-_.walkPath = (ob, path) => {
+f.walkPath = (ob, path) => {
     
     var matching = true;
     while (matching) {
@@ -405,7 +479,7 @@ _.walkPath = (ob, path) => {
     return ob;
 
 
-}; // end _.walkPath 
+}; // end f.walkPath 
 
 
 //---------------------
@@ -413,13 +487,13 @@ P.getSecondaryKeys = (keypath, cb) => {
     
     var q = {};
     q [keypath] = {$exists: 1};
-    //_.keypath = keypath;
+    //v.keypath = keypath;
     //var p = {_id: 0};
     var p = {};
     p [keypath] = 1;
     P.find (q, p, function (items) {
 
-        //var kp = _.keypath;
+        //var kp = v.keypath;
         var res = {};
         var maxLength = 0;
         var values = {};
@@ -427,8 +501,8 @@ P.getSecondaryKeys = (keypath, cb) => {
         var keys;
         for (var i = 0; i < items.length; i++) {
 
-            var item = _.walkPath (items [i], keypath);
-            if (_.ut.isOb (item)) {
+            var item = f.walkPath (items [i], keypath);
+            if (v.ut.isOb (item)) {
 
                 keys = Object.keys (item);
                 for (j = 0; j < keys.length; j++) {
@@ -444,7 +518,7 @@ P.getSecondaryKeys = (keypath, cb) => {
                 for (j = 0; j < item.length; j++) {
 
                     var aItem = item [j];
-                    if (_.ut.isOb (aItem)) {
+                    if (v.ut.isOb (aItem)) {
 
                         keys = Object.keys (aItem);
                         for (var k = 0; k < keys.length; k++) {
@@ -454,7 +528,7 @@ P.getSecondaryKeys = (keypath, cb) => {
                         } // end for (var k = 0; k < keys.length; k++)
                 
 
-                    } // end if (_.ut.isOb (aItem))
+                    } // end if (v.ut.isOb (aItem))
                     
 
                 } // end for (var j = 0; j < item.length; j++)
@@ -473,7 +547,7 @@ P.getSecondaryKeys = (keypath, cb) => {
 
                 } // end if (values.hasOwnProperty (keypath))
                 
-            } // end if (_.ut.isOb (item))
+            } // end if (v.ut.isOb (item))
             
         } // end for (var i = 0; i < items.length; i++)
 
@@ -501,16 +575,16 @@ P.getSecondaryKeys = (keypath, cb) => {
 //---------------------
 P.insert = (ob, options, cb) => {
     
-    ob = _.ut.dollarDotSubUnicode (ob);
+    ob = v.ut.dollarDotSubUnicode (ob);
 
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.insert (ob, options ? options : null, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -522,7 +596,7 @@ P.insert = (ob, options, cb) => {
 //---------------------
 P.listCollections = (cb) => {
     
-    _.connect (function (dbOb) {
+    f.connect (function (dbOb) {
         
         if (dbOb === null) {
 
@@ -534,7 +608,7 @@ P.listCollections = (cb) => {
                 
                 if (err) {
     
-                    _.errCb (err);
+                    v.errCb (err);
     
                 } else {
     
@@ -563,7 +637,7 @@ P.listCollections = (cb) => {
 //---------------------
 P.listDatabases = (cb) => {
     
-    _.connect (function (dbOb) {
+    f.connect (function (dbOb) {
         
         if (dbOb === null) {
 
@@ -576,7 +650,7 @@ P.listDatabases = (cb) => {
     
                 if (err) {
     
-                    _.errCb (err);
+                    v.errCb (err);
     
                 } else {
     
@@ -607,23 +681,23 @@ P.listDatabases = (cb) => {
 
 //---------------------
 P.listUsers = (cb) => {
-    // if P.init not yet executed (dbName and all others are null), then use _.initDefaults
+    // if P.init not yet executed (dbName and all others are null), then use v.initDefaults
     // in any case, when finished, restore init parameters to whatever they were beforehand
     
-    _.saveP ();
+    f.saveP ();
 
-    var p = _.ut.cloneOb (_.lastInited);
+    var p = v.ut.cloneOb (v.lastInited);
 
     p.dbName = 'admin';
     p.collectionName = 'system.users';
 
     P.init (p);
 
-    _.reportErr = true;
+    v.reportErr = true;
     P.find ({}, {user:1, db:1, roles: 1}, function (items) {
 
         cb (items);
-        _.restoreP ();
+        f.restoreP ();
         
     });
 
@@ -633,7 +707,7 @@ P.listUsers = (cb) => {
 //---------------------
 P.listUriCollection = () => {
     
-    _.infoCb (_.uri + ' ' + _.collectionName);
+    v.infoCb (v.uri + ' ' + v.collectionName);
 
 }; // end P.listUriCollection
 
@@ -641,13 +715,13 @@ P.listUriCollection = () => {
 //---------------------
 P.remove = (ob, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
         collectionOb.remove (ob, function (err, res) {
             
             err = err ?  'P.remove failed:  query ' + JSON.stringify (ob) : null;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
     });
@@ -658,30 +732,30 @@ P.remove = (ob, cb) => {
 //---------------------
 P.setCbs = (cb, errCb) => {
     
-    _.lastInited.cb = cb;
-    _.lastInited.errCb = errCb;
+    v.lastInited.cb = cb;
+    v.lastInited.errCb = errCb;
+        P.setCollection = (collectionName) => {
 
-    _.cb = cb;
-    _.errCb = errCb;
+            v.lastInited.collectionName = collectionName;
+            v.collectionName = collectionName;
+            P.updateUri (true);
+
+        }; // end P.setCollection
+
+
+//---------------------
+
+    v.cb = cb;
+    v.errCb = errCb;
 
 }; // end P.setCbs 
 
 
 //---------------------
-P.setCollection = (collectionName) => {
-    
-    _.lastInited.collectionName = collectionName;
-    _.collectionName = collectionName;
-    P.updateUri (true);
-
-}; // end P.setCollection 
-
-
-//---------------------
 P.setDatabase = (dbName) => {
     
-    _.lastInited.dbName = dbName;
-    _.collectionName = "";
+    v.lastInited.dbName = dbName;
+    v.collectionName = "";
     P.updateUri (false);
 
 }; // end P.setDatabase
@@ -690,7 +764,7 @@ P.setDatabase = (dbName) => {
 //---------------------
 P.setHost = (host) => {
     
-    _.lastInited.host = host;
+    v.lastInited.host = host;
 
     P.updateUri (true);
 
@@ -700,7 +774,7 @@ P.setHost = (host) => {
 //---------------------
 P.setPort = (port) => {
     
-    _.lastInited.port = port;
+    v.lastInited.port = port;
 
     P.updateUri (true);
 
@@ -710,8 +784,8 @@ P.setPort = (port) => {
 //---------------------
 P.setUserPwd = (user, pwd) => {
     
-    _.lastInited.user = user;
-    _.lastInited.pwd = pwd;
+    v.lastInited.user = user;
+    v.lastInited.pwd = pwd;
 
     P.updateUri (true);
 
@@ -723,14 +797,14 @@ P.setUserPwd = (user, pwd) => {
 //---------------------
 P.update = (queryOb, updateOb, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.update (queryOb, updateOb, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -742,14 +816,14 @@ P.update = (queryOb, updateOb, cb) => {
 //---------------------
 P.updateOne = (queryOb, updateOb, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.updateOne (queryOb, updateOb, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -761,14 +835,14 @@ P.updateOne = (queryOb, updateOb, cb) => {
 //---------------------
 P.updateMany = (queryOb, updateOb, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.updateMany (queryOb, updateOb, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -780,14 +854,14 @@ P.updateMany = (queryOb, updateOb, cb) => {
 //---------------------
 P.upsert = (queryOb, upsertOb, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.update (queryOb, upsertOb, {upsert: true}, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -799,14 +873,14 @@ P.upsert = (queryOb, upsertOb, cb) => {
 //---------------------
 P.upsertOne = (queryOb, upsertOb, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.updateOne (queryOb, upsertOb, {upsert: true}, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -818,14 +892,14 @@ P.upsertOne = (queryOb, upsertOb, cb) => {
 //---------------------
 P.upsertMany = (queryOb, upsertOb, cb) => {
     
-    _.reportErr = true;
+    v.reportErr = true;
 
-    _.connectCollection (function (collectionOb) {
+    f.connectCollection (function (collectionOb) {
      
         collectionOb.updateMany (queryOb, upsertOb, {upsert: true}, function (err, res) {
 
             err = err ? 'P.insert: err = ' + err : null ;
-            _.doCallback (err, res, cb);
+            f.doCallback (err, res, cb);
 
         });
         
@@ -837,14 +911,16 @@ P.upsertMany = (queryOb, upsertOb, cb) => {
 //---------------------
 P.updateUri = (doCallInfoCb) => {
     
-    var p = _.lastInited;
+    var p = v.lastInited;
 
     var upwd = p.user !== "" ? p.user + ':' + p.pwd + '@' : "";
-    _.uri = 'mongodb://' + upwd +  p.host + ':' + p.port + '/' + p.dbName;
+    //v.uri = 'mongodb://' + upwd +  p.host + ':' + p.port + '/' + p.dbName;
+    v.dbName = p.dbName;
+    v.uri = 'mongodb://' + upwd +  p.host + ':' + p.port;
 
     if (doCallInfoCb) {
 
-        _.infoCb (_.uri + ' ' + _.collectionName);
+        v.infoCb (v.uri + '/' + v.dbName + ' ' + v.collectionName);
 
     } // end if (doCallInfoCb)
     
@@ -852,7 +928,7 @@ P.updateUri = (doCallInfoCb) => {
 }; // end P.updateUri
 
 
-_.init ();
+f.init ();
 
 return P;
 
